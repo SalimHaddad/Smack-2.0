@@ -1,9 +1,11 @@
-package com.example.salim.smack
+package com.example.salim.smack.Controller
 
 import android.graphics.Color
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import com.example.salim.smack.R
+import com.example.salim.smack.Services.AuthService
 import kotlinx.android.synthetic.main.activity_create_user.*
 import java.util.*
 
@@ -63,5 +65,22 @@ class CreateUserActivity : AppCompatActivity() {
     fun createUserClicked(view: View)
     {
 
+        val userName = createUserNameText.text.toString()
+        val email    = createEmailText.text.toString()
+        val password = createPasswordText.text.toString()
+       AuthService.registerUser(this, email, password) { registerSuccess ->
+           if(registerSuccess)
+           {
+                AuthService.loginUser(this, email, password){ loginSucces ->
+                    if (loginSucces)
+                    {
+                       println(AuthService.authToken)
+                        println(AuthService.userEmail)
+                    }
+
+                }
+           }
+
+       }
     }
 }
