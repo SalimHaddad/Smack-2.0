@@ -1,29 +1,33 @@
 package com.example.salim.smack.Controller
 
+import android.content.Intent
 import android.graphics.Color
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v4.content.LocalBroadcastManager
 import android.view.View
+import android.widget.Toast
 import com.example.salim.smack.R
 import com.example.salim.smack.Services.AuthService
+import com.example.salim.smack.Services.UserDataService
+import com.example.salim.smack.Utilities.BROADCAST_USER_DATA_CHANGE
 import kotlinx.android.synthetic.main.activity_create_user.*
 import java.util.*
 
 class CreateUserActivity : AppCompatActivity() {
 
 
-    var userAvatar ="profileDefault"
-    var avatarColor = "[0.5, 0.5, 0.5, 1]"
+    var userAvatar = "profileDefault"                  // default profile picture
+    var avatarColor = "[0.5, 0.5, 0.5, 1]"            // default color
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_user)
+        createSpinner.visibility = View.INVISIBLE
     }
 
 
-
-    fun generateUserAvatar(view: View)
-    {
+    fun generateUserAvatar(view: View) {
         val random = Random()
         val color = random.nextInt(2)
         val avatar = random.nextInt(28)
@@ -32,9 +36,7 @@ class CreateUserActivity : AppCompatActivity() {
         if (color == 0) //check whether the color is light or dark
         {
             userAvatar = "light$avatar" // the name of the light category images
-        }
-        else
-        {
+        } else {
             userAvatar = "dark$avatar" // the name of the dark category images
         }
 
@@ -42,7 +44,6 @@ class CreateUserActivity : AppCompatActivity() {
         createAvatarImageView.setImageResource(resourceId)
 
     }
-
 
 
     fun generateColorClicked(view: View) // generating random RGB format colors for the user avatar
@@ -54,33 +55,88 @@ class CreateUserActivity : AppCompatActivity() {
 
         createAvatarImageView.setBackgroundColor(Color.rgb(r, g, b))
 
-        val savedR = r.toDouble()/255
-        val savedG = g.toDouble()/255
-        val savedB = b.toDouble()/255
+        val savedR = r.toDouble() / 255
+        val savedG = g.toDouble() / 255
+        val savedB = b.toDouble() / 255
 
         avatarColor = "[$savedR, $savedG, $savedB, 1]"
 
     }
 
-    fun createUserClicked(view: View)
-    {
-
+    fun createUserClicked(view: View) {
+        enableSpinner(true)
         val userName = createUserNameText.text.toString()
-        val email    = createEmailText.text.toString()
+        val email = createEmailText.text.toString()
         val password = createPasswordText.text.toString()
-       AuthService.registerUser(this, email, password) { registerSuccess ->
-           if(registerSuccess)
-           {
-                AuthService.loginUser(this, email, password){ loginSucces ->
-                    if (loginSucces)
-                    {
-                       println(AuthService.authToken)
-                        println(AuthService.userEmail)
+
+
+        if (userName.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty())
+        {
+            AuthService.registerUser(this, email, password) { registerSuccess ->
+                if (registerSuccess)
+                {
+                    AuthService.loginUser(this, email, password){ loginSucces ->
+                        if (loginSucces)
+                        {
+                            AuthService.createUser(this, userName, email, userAvatar, avatarColor) {createSuccess ->
+                                if (createSuccess)
+                                {
+                                    val userDataChange = Intent(BROADCAST_USER_DATA_CHANGE)
+                                    LocalBroadcastManager.getInstance(this).sendBroadcast(userDataChange)
+                                    enableSpinner(false)
+                                    finish()
+                                } else {
+                                    errorToast()
+                                }
+                            }
+                        }
+                        else {
+                            errorToast()
+                        }
+
                     }
 
+                } else {
+                    errorToast()
                 }
-           }
 
-       }
+            }
+        }
+        else {
+            Toast.makeText(this, "Make sure user name, email and password are filled in. ", Toast.LENGTH_LONG).show()
+            enableSpinner(false)
+        }
+
+
     }
+
+
+    fun errorToast()
+    {
+        Toast.makeText(this, "Something went wrong, please try again", Toast.LENGTH_LONG).show()
+        enableSpinner(false)
+    }
+
+
+    fun enableSpinner (enable: Boolean)
+    {
+        if (enable)
+        {
+            createSpinner.visibility        = View.VISIBLE
+
+        }
+         else {
+            createSpinner.visibility        = View.INVISIBLE
+
+        }
+
+        createUserBtn.isEnabled         = !enable
+        createAvatarImageView.isEnabled = !enable
+        backgroundColorBtn.isEnabled    = !enable
+
+
+    }
+
+
 }
+
