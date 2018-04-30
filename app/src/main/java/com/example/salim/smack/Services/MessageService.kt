@@ -6,10 +6,13 @@ import com.android.volley.toolbox.JsonArrayRequest
 import com.android.volley.toolbox.Volley
 import com.example.salim.smack.Controller.App
 import com.example.salim.smack.Model.Channel
+import com.example.salim.smack.Model.Message
 import com.example.salim.smack.Utilities.URL_GET_CHANNELS
+import com.example.salim.smack.Utilities.URL_GET_MESSAGES
 import okhttp3.Response
 import org.json.JSONException
 import java.lang.reflect.Method
+import java.util.*
 
 /**
  * Created by salimhaddad on 4/30/18.
@@ -18,6 +21,7 @@ object MessageService {
 
 
     val channels = ArrayList<Channel>()
+    val messages = ArrayList<Message>()
 
 
     fun getChannels(complete: (Boolean) -> Unit)
@@ -69,4 +73,84 @@ object MessageService {
        App.prefs.requestQueue.add(channelsRequest)
 
     }
+
+
+
+    fun getMessages(channelId: String, complete: (Boolean) -> Unit)
+    {
+         val url = "$URL_GET_MESSAGES$channelId"
+        val messagesRequest = object : JsonArrayRequest(Method.GET, url, null, com.android.volley.Response.Listener { response ->
+
+
+
+              clearMessages()
+            try {
+
+                    for ( x in 0 until response.length())
+                    {
+                        val message = response.getJSONObject(x)
+                        val messageBody = message.getString("messageBody")
+                        val channelId = message.getString("channelId")
+                        val id = message.getString("_id")
+                        val userName = message.getString("userName")
+                        val userAvatar = message.getString("userAvatar")
+                        val userAvatarColor = message.getString("userAvatarColor")
+                        val timeStamp = message.getString("timeStamp")
+
+                        val newMessage = Message(messageBody, userName, channelId, userAvatar, userAvatarColor, id, timeStamp)
+                        this.messages.add(newMessage)
+                    }
+
+                complete(true)
+            }
+              catch (e: JSONException)
+              {
+                  Log.d("JSON", "EXC: " + e.localizedMessage)
+                  complete(false)
+              }
+
+
+        }, com.android.volley.Response.ErrorListener {
+
+            Log.d("ERROR", "Could not retrieve messages")
+            complete(false)
+
+        })
+        {
+
+            override fun getBodyContentType(): String {
+                return "application/json; charset=utf-8"
+            }
+
+            override fun getHeaders(): MutableMap<String, String> {
+                val headers = HashMap<String, String>()
+                headers.put("Authorization", "Bearer ${App.prefs.authToken}")
+                return headers
+            }
+
+        }
+
+        App.prefs.requestQueue.add(messagesRequest)
+    }
+
+
+    fun clearMessages()
+    {
+        messages.clear()
+    }
+
+    fun clearChannels()
+    {
+        channels.clear()
+    }
+
+
+
+
+
+
+
+
+
+
 }
