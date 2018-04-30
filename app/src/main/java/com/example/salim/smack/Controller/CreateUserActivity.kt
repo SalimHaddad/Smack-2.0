@@ -16,9 +16,8 @@ import java.util.*
 
 class CreateUserActivity : AppCompatActivity() {
 
-
-    var userAvatar = "profileDefault"                  // default profile picture
-    var avatarColor = "[0.5, 0.5, 0.5, 1]"            // default color
+    var userAvatar = "profileDefault"
+    var avatarColor = "[0.5, 0.5, 0.5, 1]"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,41 +25,33 @@ class CreateUserActivity : AppCompatActivity() {
         createSpinner.visibility = View.INVISIBLE
     }
 
-
     fun generateUserAvatar(view: View) {
         val random = Random()
         val color = random.nextInt(2)
         val avatar = random.nextInt(28)
 
-
-        if (color == 0) //check whether the color is light or dark
-        {
-            userAvatar = "light$avatar" // the name of the light category images
+        if (color == 0) {
+            userAvatar = "light$avatar"
         } else {
-            userAvatar = "dark$avatar" // the name of the dark category images
+            userAvatar = "dark$avatar"
         }
-
         val resourceId = resources.getIdentifier(userAvatar, "drawable", packageName)
         createAvatarImageView.setImageResource(resourceId)
-
     }
 
-
-    fun generateColorClicked(view: View) // generating random RGB format colors for the user avatar
-    {
+    fun generateColorClicked(view: View) {
         val random = Random()
         val r = random.nextInt(255)
         val g = random.nextInt(255)
         val b = random.nextInt(255)
 
-        createAvatarImageView.setBackgroundColor(Color.rgb(r, g, b))
+        createAvatarImageView.setBackgroundColor(Color.rgb(r,g,b))
 
         val savedR = r.toDouble() / 255
         val savedG = g.toDouble() / 255
         val savedB = b.toDouble() / 255
 
         avatarColor = "[$savedR, $savedG, $savedB, 1]"
-
     }
 
     fun createUserClicked(view: View) {
@@ -69,18 +60,13 @@ class CreateUserActivity : AppCompatActivity() {
         val email = createEmailText.text.toString()
         val password = createPasswordText.text.toString()
 
-
-        if (userName.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty())
-        {
+        if (userName.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty()) {
             AuthService.registerUser(this, email, password) { registerSuccess ->
-                if (registerSuccess)
-                {
-                    AuthService.loginUser(this, email, password){ loginSucces ->
-                        if (loginSucces)
-                        {
-                            AuthService.createUser(this, userName, email, userAvatar, avatarColor) {createSuccess ->
-                                if (createSuccess)
-                                {
+                if (registerSuccess) {
+                    AuthService.loginUser(this, email, password) { loginSuccess ->
+                        if (loginSuccess) {
+                            AuthService.createUser(this, userName, email, userAvatar, avatarColor) { createSuccess ->
+                                if (createSuccess) {
                                     val userDataChange = Intent(BROADCAST_USER_DATA_CHANGE)
                                     LocalBroadcastManager.getInstance(this).sendBroadcast(userDataChange)
                                     enableSpinner(false)
@@ -89,53 +75,38 @@ class CreateUserActivity : AppCompatActivity() {
                                     errorToast()
                                 }
                             }
-                        }
-                        else {
+                        } else {
                             errorToast()
                         }
-
                     }
-
                 } else {
                     errorToast()
                 }
-
             }
-        }
-        else {
-            Toast.makeText(this, "Make sure user name, email and password are filled in. ", Toast.LENGTH_LONG).show()
+        } else {
+            Toast.makeText(this, "Make sure user name, email, and password are filled in.",
+                    Toast.LENGTH_LONG).show()
             enableSpinner(false)
         }
-
-
     }
 
-
-    fun errorToast()
-    {
-        Toast.makeText(this, "Something went wrong, please try again", Toast.LENGTH_LONG).show()
+    fun errorToast() {
+        Toast.makeText(this, "Something went wrong, please try again.",
+                Toast.LENGTH_LONG).show()
         enableSpinner(false)
     }
 
-
-    fun enableSpinner (enable: Boolean)
-    {
-        if (enable)
-        {
-            createSpinner.visibility        = View.VISIBLE
-
+    fun enableSpinner(enable: Boolean) {
+        if (enable) {
+            createSpinner.visibility = View.VISIBLE
+        } else {
+            createSpinner.visibility = View.INVISIBLE
         }
-         else {
-            createSpinner.visibility        = View.INVISIBLE
-
-        }
-
-        createUserBtn.isEnabled         = !enable
+        createUserBtn.isEnabled = !enable
         createAvatarImageView.isEnabled = !enable
-        backgroundColorBtn.isEnabled    = !enable
-
-
+        backgroundColorBtn.isEnabled = !enable
     }
+
 
 
 }
