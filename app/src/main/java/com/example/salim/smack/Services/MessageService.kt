@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.android.volley.toolbox.JsonArrayRequest
 import com.android.volley.toolbox.Volley
+import com.example.salim.smack.Controller.App
 import com.example.salim.smack.Model.Channel
 import com.example.salim.smack.Utilities.URL_GET_CHANNELS
 import okhttp3.Response
@@ -19,7 +20,7 @@ object MessageService {
     val channels = ArrayList<Channel>()
 
 
-    fun getChannels(context: Context, complete: (Boolean) -> Unit)
+    fun getChannels(complete: (Boolean) -> Unit)
     {
        val channelsRequest = object : JsonArrayRequest(Method.GET, URL_GET_CHANNELS, null, com.android.volley.Response.Listener{ response ->
 
@@ -59,13 +60,13 @@ object MessageService {
 
            override fun getHeaders(): MutableMap<String, String> {
                val headers = HashMap<String, String>()
-               headers.put("Authorization", "Bearer ${AuthService.authToken}")
+               headers.put("Authorization", "Bearer ${App.prefs.authToken}")
                return headers
            }
 
 
        }
-        Volley.newRequestQueue(context).add(channelsRequest)
+       App.prefs.requestQueue.add(channelsRequest)
 
     }
 }
